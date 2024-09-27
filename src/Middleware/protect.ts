@@ -2,6 +2,11 @@ import { Context, Next } from "hono";
 import validator from "validator";
 
 const token = process.env.TOKEN;
+const allowedDomains = new Set(
+  `${process.env.ALLOWED_DOMAINS}`
+    .split(" ")
+    .map((domain) => domain.toLowerCase()),
+);
 
 interface RuleBody {
   domain?: string;
@@ -20,27 +25,41 @@ export const protect = async (c: Context, next: Next) => {
   await next();
 };
 
+interface RuleBody {
+  alias: string;
+  destination: string;
+  username: string;
+  domain?: string;
+  comment?: string;
+}
+
 export const validateBody = async (c: Context, next: Next) => {
   try {
-    const body: Partial<RuleBody> = await c.req.json().catch(() => null);
+    const body: Partial<RuleBody> = await c.req.json().catch(() => ({}));
     if (!body || typeof body !== "object") {
       return c.json({ success: false, error: "Invalid request body" }, 400);
     }
 
-    const lowercasedBody: Partial<RuleBody> = Object.entries(body).reduce(
-      (acc, [key, value]) => {
-        acc[key] =
-          key !== "comment" && typeof value === "string"
-            ? value.toLowerCase()
-            : value;
-        return acc;
-      },
-      {} as Record<string, any>,
+    const lowercasedBody: Partial<RuleBody> = Object.fromEntries(
+      Object.entries(body).map(([key, value]) => [
+        key,
+        key !== "comment" && typeof value === "string"
+          ? value.toLowerCase()
+          : value,
+      ]),
     );
 
-    const domain =
-      lowercasedBody.domain || c.req.param("domain")?.toLowerCase();
-    if (!body.alias || !body.destination || !body.username || !domain) {
+    // Extract domain from params or body, ensure it's lowercase
+    const domain = (
+      lowercasedBody.domain || c.req.param("domain")
+    )?.toLowerCase();
+
+    if (
+      !lowercasedBody.alias ||
+      !lowercasedBody.destination ||
+      !lowercasedBody.username ||
+      !domain
+    ) {
       return c.json(
         {
           success: false,
@@ -49,40 +68,42 @@ export const validateBody = async (c: Context, next: Next) => {
         400,
       );
     }
+    if (!allowedDomains.has(domain)) {
+      return c.json({ success: false, error: "Domain not allowed" }, 400);
+    }
     lowercasedBody.domain = domain;
 
-    if (!lowercasedBody.alias || !validator.isEmail(lowercasedBody.alias)) {
+    // Validate alias
+    if (!validator.isEmail(lowercasedBody.alias)) {
       return c.json(
-        { error: "Alias must be a valid email", success: false },
+        { success: false, error: "Alias must be a valid email" },
         400,
       );
     }
-    if (
-      !lowercasedBody.destination ||
-      !validator.isEmail(lowercasedBody.destination)
-    ) {
+
+    // Validate destination
+    if (!validator.isEmail(lowercasedBody.destination)) {
       return c.json(
         { success: false, error: "Destination must be a valid email" },
         400,
       );
     }
+
+    // Validate domain
     if (validator.isURL(domain, { require_protocol: true })) {
       return c.json({ success: false, error: "Domain must not be a URL" }, 400);
     }
 
-    if (lowercasedBody.alias) {
-      const [, aliasDomain] = lowercasedBody.alias.split("@");
-      if (!aliasDomain || aliasDomain !== domain) {
-        return c.json(
-          {
-            success: false,
-            error: "Alias domain doesn't match the specified domain",
-          },
-          400,
-        );
-      }
-    } else {
-      return c.json({ success: false, error: "Alias is required" }, 400);
+    // Check if alias domain matches the specified domain
+    const [, aliasDomain] = lowercasedBody.alias.split("@");
+    if (aliasDomain !== domain) {
+      return c.json(
+        {
+          success: false,
+          error: "Alias domain doesn't match the specified domain",
+        },
+        400,
+      );
     }
 
     c.set("validatedBody", lowercasedBody);

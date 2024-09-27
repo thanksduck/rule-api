@@ -5,6 +5,8 @@ export const createRule = async (c: Context) => {
   try {
     const validatedBody = c.get("validatedBody");
 
+    console.log(validatedBody);
+
     const existingRule = await Rule.findOne({
       domain: validatedBody.domain,
       alias: validatedBody.alias,
