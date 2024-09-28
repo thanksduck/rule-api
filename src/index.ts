@@ -1,13 +1,13 @@
 import { serve } from "bun";
 import connectDB from "./db";
 import app from "./app";
+import { ruleCache } from "./Controller/cache";
 
 const port = process.env.PORT || 4444;
 
 connectDB()
   .then(() => {
-    console.log("Connected to database");
-
+    ruleCache.initialize();
     serve({
       fetch: app.fetch,
       port: Number(port),

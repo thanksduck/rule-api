@@ -1,12 +1,10 @@
-import { Rule } from "../Model/Rules";
+import { Rule } from "../Model/Rule";
 import { Context } from "hono";
+import { ruleCache } from "./cache";
 
 export const createRule = async (c: Context) => {
   try {
     const validatedBody = c.get("validatedBody");
-
-    console.log(validatedBody);
-
     const existingRule = await Rule.findOne({
       domain: validatedBody.domain,
       alias: validatedBody.alias,
@@ -16,6 +14,7 @@ export const createRule = async (c: Context) => {
     }
     const rule = new Rule(validatedBody);
     await rule.save();
+    ruleCache.addRule(rule);
     return c.json(
       {
         success: true,
@@ -34,7 +33,7 @@ export const upateRule = async (c: Context) => {
   try {
     const domain = c.req.param("domain");
     const rule = c.req.param("rule");
-    const alias = rule.includes("@") ? rule : `${rule}@${domain}`;
+    const alias = rule.includes("@") ? rule.split("@")[0] : rule;
     const updatedRule = await Rule.findOneAndUpdate(
       { domain, alias },
       { $set: c.get("validatedBody") },
@@ -43,6 +42,12 @@ export const upateRule = async (c: Context) => {
     if (!updatedRule) {
       return c.json({ success: false, error: "Rule not found" }, 404);
     }
+    ruleCache.updateRule(
+      domain,
+      alias,
+      updatedRule.destination,
+      updatedRule.active,
+    );
     return c.json({
       success: true,
       message: "Rule updated successfully",
@@ -64,14 +69,14 @@ export const getRule = async (c: Context) => {
       400,
     );
   }
-  // check if rule variable has @ symbol if it has then const alias = rule : else const alias = `${rule}@${domain}`;
-  const alias = rule.includes("@") ? rule : `${rule}@${domain}`;
-  // const alias = `${rule}@${domain}`;
-  const foundRule = await Rule.findOneAndUpdate(
-    { domain, alias, active: true },
-    { $inc: { count: 1 } },
-    { new: true },
-  );
+  const alias = rule.includes("@") ? rule.split("@")[0] : rule;
+  const foundRule =
+    ruleCache.getRule(domain, alias) ||
+    (await Rule.findOneAndUpdate(
+      { domain, alias, active: true },
+      { $inc: { count: 1 } },
+      { new: true },
+    ));
 
   if (!foundRule) {
     return c.json({ success: true, error: "Rule not found" }, 404);
@@ -185,8 +190,7 @@ export const toggleRule = async (c: Context) => {
       400,
     );
   }
-
-  const alias = rule.includes("@") ? rule : `${rule}@${domain}`;
+  const alias = rule.includes("@") ? rule.split("@")[0] : rule;
   const newActiveState = action === "enable";
 
   const foundRule = await Rule.findOneAndUpdate(
@@ -217,9 +221,9 @@ export const deleteRule = async (c: Context) => {
     );
   }
 
-  const alias = rule.includes("@") ? rule : `${rule}@${domain}`;
+  const alias = rule.includes("@") ? rule.split("@")[0] : rule;
   const foundRule = await Rule.findOneAndDelete({ domain, alias });
-
+  ruleCache.removeRule(domain, alias);
   if (!foundRule) {
     return c.json({ success: false, error: "Rule not found" }, 404);
   }

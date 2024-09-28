@@ -105,7 +105,7 @@ export const validateBody = async (c: Context, next: Next) => {
         400,
       );
     }
-
+    lowercasedBody.alias = lowercasedBody.alias.split("@")[0];
     c.set("validatedBody", lowercasedBody);
     await next();
   } catch (error) {
