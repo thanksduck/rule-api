@@ -78,8 +78,8 @@ export const getRule = async (c: Context) => {
       { new: true },
     ));
 
-  if (!foundRule) {
-    return c.json({ success: true, error: "Rule not found" }, 404);
+  if (!foundRule || !foundRule.active) {
+    return c.json({ success: false, error: "Rule not found" }, 404);
   }
   const destination = foundRule.destination;
   return c.json({
@@ -172,10 +172,12 @@ export const getAllRulesDomain = async (c: Context) => {
   });
 };
 
+type ToggleAction = "enable" | "disable" | "switch" | "toggle" | "flip";
+
 export const toggleRule = async (c: Context) => {
   const domain = c.req.param("domain");
   const rule = c.req.param("rule");
-  const action = c.req.param("action"); // This should be either 'enable' or 'disable'
+  const action = c.req.param("action") as ToggleAction;
 
   if (!domain || !rule) {
     return c.json(
@@ -184,30 +186,77 @@ export const toggleRule = async (c: Context) => {
     );
   }
 
-  if (action !== "enable" && action !== "disable") {
+  if (!["enable", "disable", "switch", "toggle", "flip"].includes(action)) {
     return c.json(
-      { success: false, error: "Invalid action. Use 'enable' or 'disable'" },
+      {
+        success: false,
+        error:
+          "Invalid action. Use 'enable', 'disable', 'switch', 'toggle', or 'flip'",
+      },
       400,
     );
   }
+
   const alias = rule.includes("@") ? rule.split("@")[0] : rule;
-  const newActiveState = action === "enable";
 
-  const foundRule = await Rule.findOneAndUpdate(
-    { domain, alias, active: !newActiveState },
-    { active: newActiveState },
-    { new: true },
-  );
+  try {
+    const foundRule = await Rule.findOne({ domain, alias });
 
-  if (!foundRule) {
-    return c.json({ success: false, error: "Rule not found" }, 404);
+    if (!foundRule) {
+      return c.json({ success: false, error: "Rule not found" }, 404);
+    }
+
+    let newActiveState: boolean;
+    switch (action) {
+      case "enable":
+        newActiveState = true;
+        break;
+      case "disable":
+        newActiveState = false;
+        break;
+      case "switch":
+      case "toggle":
+      case "flip":
+        newActiveState = !foundRule.active;
+        break;
+    }
+
+    const updatedRule = await Rule.findOneAndUpdate(
+      { domain, alias },
+      { active: newActiveState },
+      { new: true },
+    );
+
+    if (!updatedRule) {
+      return c.json({ success: false, error: "Failed to update rule" }, 500);
+    }
+
+    ruleCache.updateRule(
+      domain,
+      alias,
+      updatedRule.destination,
+      newActiveState,
+    );
+
+    const actionPast =
+      action === "enable"
+        ? "enabled"
+        : action === "disable"
+          ? "disabled"
+          : "toggled";
+
+    return c.json({
+      success: true,
+      message: `Rule has been ${actionPast}`,
+      data: updatedRule,
+    });
+  } catch (error) {
+    console.error("Error toggling rule:", error);
+    return c.json(
+      { success: false, error: "An error occurred while modifying the rule" },
+      500,
+    );
   }
-
-  return c.json({
-    success: true,
-    message: `Rule has been ${action}d`,
-    data: foundRule,
-  });
 };
 
 export const deleteRule = async (c: Context) => {
