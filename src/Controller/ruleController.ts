@@ -59,6 +59,19 @@ export const upateRule = async (c: Context) => {
   }
 };
 
+const updateRuleCount = async (domain: string, alias: string) => {
+  try {
+    await Rule.findOneAndUpdate(
+      { domain, alias, active: true },
+      { $inc: { count: 1 } },
+      { new: true },
+    );
+  } catch (error) {
+    // Log error but don't throw to prevent affecting the main request
+    console.error("Failed to update rule count:", error);
+  }
+};
+
 export const getRule = async (c: Context) => {
   const domain = c.req.param("domain");
   const rule = c.req.param("rule");
@@ -69,25 +82,71 @@ export const getRule = async (c: Context) => {
       400,
     );
   }
+
   const alias = rule.includes("@") ? rule.split("@")[0] : rule;
-  const foundRule =
-    ruleCache.getRule(domain, alias) ||
-    (await Rule.findOneAndUpdate(
-      { domain, alias, active: true },
-      { $inc: { count: 1 } },
-      { new: true },
-    ));
+
+  // First check cache
+  const cachedRule = ruleCache.getRule(domain, alias);
+  if (cachedRule) {
+    // If found in cache, update count in background
+    updateRuleCount(domain, alias).catch(console.error);
+    return c.json({
+      success: true,
+      message: "Rule found",
+      data: cachedRule.destination,
+    });
+  }
+
+  // If not in cache, fetch from database
+  const foundRule = await Rule.findOneAndUpdate(
+    { domain, alias, active: true },
+    { $inc: { count: 1 } },
+    { new: true },
+  );
 
   if (!foundRule || !foundRule.active) {
     return c.json({ success: false, error: "Rule not found" }, 404);
   }
-  const destination = foundRule.destination;
+
+  // Update cache with the fresh data
+  ruleCache.addRule(foundRule);
+
   return c.json({
     success: true,
     message: "Rule found",
-    data: destination,
+    data: foundRule.destination,
   });
 };
+
+// export const getRule = async (c: Context) => {
+//   const domain = c.req.param("domain");
+//   const rule = c.req.param("rule");
+
+//   if (!domain || !rule) {
+//     return c.json(
+//       { success: false, error: "Domain and rule are required" },
+//       400,
+//     );
+//   }
+//   const alias = rule.includes("@") ? rule.split("@")[0] : rule;
+//   const foundRule =
+//     ruleCache.getRule(domain, alias) ||
+//     (await Rule.findOneAndUpdate(
+//       { domain, alias, active: true },
+//       { $inc: { count: 1 } },
+//       { new: true },
+//     ));
+
+//   if (!foundRule || !foundRule.active) {
+//     return c.json({ success: false, error: "Rule not found" }, 404);
+//   }
+//   const destination = foundRule.destination;
+//   return c.json({
+//     success: true,
+//     message: "Rule found",
+//     data: destination,
+//   });
+// };
 
 // export const getAllRules = async (c: Context) => {
 //   const rules = await Rule.find({});
