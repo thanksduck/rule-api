@@ -89,6 +89,9 @@ export const getRule = async (c: Context) => {
   const cachedRule = ruleCache.getRule(domain, alias);
   if (cachedRule) {
     // If found in cache, update count in background
+    if (!cachedRule.active) {
+      return c.json({ success: false, error: "Rule not found" }, 404);
+    }
     updateRuleCount(domain, alias).catch(console.error);
     return c.json({
       success: true,
