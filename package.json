@@ -6,13 +6,13 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
-    "@types/mongoose": "^5.11.97",
-    "@types/validator": "^13.12.2",
     "hono": "^4.6.3",
     "mongoose": "^8.6.3",
     "validator": "^13.12.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/mongoose": "^5.11.97",
+    "@types/validator": "^13.12.2"
   }
 }

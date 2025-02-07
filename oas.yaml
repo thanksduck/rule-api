@@ -1,0 +1,349 @@
+openapi: 3.0.0
+info:
+  title: Rules API
+  version: 1.0.0
+  description: API for managing and retrieving rules for routing and access control.
+
+servers:
+  - url: http://localhost:4444/v1  # Replace with your server URL
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Rule:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId
+        domain:
+          type: string
+          description: Domain of the rule
+        alias:
+          type: string
+          description: Alias of the rule (e.g., user)
+        destination:
+          type: string
+          description: Destination email address
+        username:
+          type: string
+          description: Username associated with the rule
+        comment:
+          type: string
+          description: Optional comment
+        active:
+          type: boolean
+          description: Whether the rule is active
+        count:
+          type: integer
+          description: Number of times the rule has been accessed
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Update timestamp
+      required:
+        - domain
+        - alias
+        - destination
+        - username
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: string
+
+    RuleListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rule'
+        pagination:
+          type: object
+          properties:
+            currentPage:
+              type: integer
+            totalPages:
+              type: integer
+            totalItems:
+              type: integer
+            itemsPerPage:
+              type: integer
+            hasNextPage:
+              type: boolean
+            hasPrevPage:
+              type: boolean
+
+    RuleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: string # Destination email
+
+paths:
+  /rule:
+    get:
+      summary: Retrieve all rules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Number of rules per page
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+          description: Field to sort by
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sorting order
+        - in: query
+          name: domain
+          schema:
+            type: string
+          description: Filter by domain
+        - in: query
+          name: active
+          schema:
+            type: boolean
+          description: Filter by active status
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleListResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rule/{domain}:
+    get:
+      summary: Retrieve all active rules for a domain
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          required: true
+          description: The domain
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleListResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rule/{domain}/{rule}:
+    get:
+      summary: Retrieve a specific rule
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          required: true
+          description: The domain
+        - in: path
+          name: rule
+          schema:
+            type: string
+          required: true
+          description: The alias (e.g., user@domain.com)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Create a new rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          description: The domain (optional, can be in body)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Update an existing rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          required: true
+          description: The domain
+        - in: path
+          name: rule
+          schema:
+            type: string
+          required: true
+          description: The alias (e.g., user@domain.com)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rule' # All fields optional for update
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuleResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a rule
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          required: true
+          description: The domain
+        - in: path
+          name: rule
+          schema:
+            type: string
+          required: true
+          description: The alias (e.g., user@domain.com)
+      responses:
+        '204':
+          description: Rule deleted successfully
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rule/{domain}/{rule}/{action}:
+    patch:
+      summary: Toggle rule status (enable/disable)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: domain
+          schema:
+            type: string
+          required: true
+          description: The domain
+        - in: path
+          name: rule
+          schema:
+            type: string
+          required: true
+          description: The alias (e.g., user@domain.com)
+        - in: path
+          name: action
+          schema:
+            type: string
+            enum: [enable, disable, switch, toggle, flip]
+          required: true
+          description: The action to perform
+      responses:
+        '200':
+          content:
+            application/json
