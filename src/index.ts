@@ -5,6 +5,16 @@ import { ruleCache } from "./Controller/cache";
 
 const port = process.env.PORT || 4444;
 
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // Keep process running
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Keep process running
+});
+
 connectDB()
   .then(() => {
     ruleCache.initialize();
@@ -18,5 +28,8 @@ connectDB()
   })
   .catch((error) => {
     console.error("Failed to connect to database:", error);
-    process.exit(1);
+    // Don't exit, keep trying to connect
+    setTimeout(() => {
+      connectDB();
+    }, 5000);
   });
