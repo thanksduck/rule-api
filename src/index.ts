@@ -7,12 +7,12 @@ const port = process.env.PORT || 4444;
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
-  // Keep process running
+  process.exit(1); // Exit and let process manager restart
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // Keep process running
+  process.exit(1); // Exit and let process manager restart
 });
 
 connectDB()
@@ -28,8 +28,5 @@ connectDB()
   })
   .catch((error) => {
     console.error("Failed to connect to database:", error);
-    // Don't exit, keep trying to connect
-    setTimeout(() => {
-      connectDB();
-    }, 5000);
+    // Let DB handle reconnection
   });
