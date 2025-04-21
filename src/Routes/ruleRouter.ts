@@ -8,7 +8,8 @@ import {
   getRule,
   upateRule,
 } from "../Controller/ruleController";
-import { protect, validateBody } from "../Middleware/protect";
+import protect from "../Middleware/protect";
+import validateBody from "../Middleware/validate";
 
 const ruleRouter = new Hono();
 

@@ -39,9 +39,7 @@ export const upateRule = async (c: Context) => {
       { $set: c.get("validatedBody") },
       { new: true },
     );
-    if (!updatedRule) {
-      return c.json({ success: false, error: "Rule not found" }, 404);
-    }
+    if (!updatedRule) return c.notFound();
     ruleCache.updateRule(
       domain,
       alias,
@@ -89,9 +87,7 @@ export const getRule = async (c: Context) => {
   const cachedRule = ruleCache.getRule(domain, alias);
   if (cachedRule) {
     // If found in cache, update count in background
-    if (!cachedRule.active) {
-      return c.json({ success: false, error: "Rule not found" }, 404);
-    }
+    if (!cachedRule.active) return c.notFound();
     updateRuleCount(domain, alias).catch(console.error);
     return c.json({
       success: true,
@@ -107,9 +103,7 @@ export const getRule = async (c: Context) => {
     { new: true },
   );
 
-  if (!foundRule || !foundRule.active) {
-    return c.json({ success: false, error: "Rule not found" }, 404);
-  }
+  if (!foundRule || !foundRule.active) return c.notFound();
 
   // Update cache with the fresh data
   ruleCache.addRule(foundRule);
@@ -193,9 +187,7 @@ export const getAllRules = async (c: Context) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    if (rules.length === 0) {
-      return c.json({ success: false, error: "No rules found" }, 404);
-    }
+    if (rules.length === 0) return c.notFound();
 
     // Calculate pagination info
     const totalPages = Math.ceil(total / limit);
@@ -264,9 +256,7 @@ export const toggleRule = async (c: Context) => {
   try {
     const foundRule = await Rule.findOne({ domain, alias });
 
-    if (!foundRule) {
-      return c.json({ success: false, error: "Rule not found" }, 404);
-    }
+    if (!foundRule) return c.notFound();
 
     let newActiveState: boolean;
     switch (action) {
@@ -339,8 +329,5 @@ export const deleteRule = async (c: Context) => {
     return c.json({ success: false, error: "Rule not found" }, 404);
   }
 
-  return c.json(
-    { success: true, message: "Rule has been deleted", data: null },
-    204,
-  );
+  return c.body(null, 204);
 };
