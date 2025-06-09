@@ -1,13 +1,31 @@
-FROM oven/bun:slim as builder
+FROM oven/bun AS build
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --production
-COPY . .
-RUN bun run build
 
-FROM oven/bun:slim
+# Cache package installation
+COPY package.json package.json
+COPY bun.lock bun.lock
+RUN bun install
+
+# Copy source and config
+COPY ./src ./src
+COPY tsconfig.json tsconfig.json
+
+ENV NODE_ENV=production
+
+# Compile, minify, and target Bun
+RUN bun build \
+  --compile \
+  --minify \
+  --target bun \
+  --tsconfig-override tsconfig.json \
+  --outfile server \
+  ./src/index.ts
+
+# Use distroless image for smaller, secure runtime
+FROM gcr.io/distroless/base
 WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package.json ./
+COPY --from=build /app/server server
+
+ENV NODE_ENV=production
+CMD ["./server"]
 EXPOSE 4444
-CMD ["bun", "run", "start"]
