@@ -63,7 +63,7 @@ export const ruleHandler = new Elysia({
     "/:domain/:alias",
     async ({ params, status }) => {
       const domain = params.domain.toLowerCase();
-      const alias = params.domain.toLowerCase().split("@")[0] || "";
+      const alias = params.alias.toLowerCase().split("@")[0] || "";
       try {
         const cachedRule = ruleCache.getRule(domain, alias);
         if (cachedRule) {

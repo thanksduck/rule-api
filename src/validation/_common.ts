@@ -1,23 +1,12 @@
 import { t } from "elysia";
 
 export const aliasField = t.Lowercase(
-  t.Union(
-    [
-      t.String({
-        format: "email",
-        title: "Alias Email",
-        description: "The actual unique email",
-        error: "Alias must be a valid email",
-        examples: ["hello@1as.in"],
-      }),
-    ],
-    t.String({
-      title: "Alias ",
-      description: "The actual unique slug per domain",
-      error: "Alias it is only one for one domain",
-      examples: ["hello"],
-    }),
-  ),
+  t.String({
+    title: "Alias Email",
+    description: "The actual unique email",
+    error: "Alias must be a valid email",
+    examples: ["hello@1as.in"],
+  }),
 );
 
 export const destinationField = t.Lowercase(
