@@ -1,4 +1,5 @@
-import { Rule } from "../Model/Rule";
+import { Rule } from "@/db/schema";
+
 interface CachedRule {
   destination: string;
   active: boolean;

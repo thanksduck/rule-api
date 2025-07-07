@@ -1,13 +1,15 @@
-import mongoose from "mongoose";
+import * as mongoose from "mongoose";
+import { DATABASE_URL } from "@/env";
 
-const connectDB = async () => {
+export const connectDB = async () => {
   const maxRetries = 5;
   const retryDelay = 5000;
   let currentTry = 1;
 
   while (currentTry <= maxRetries) {
     try {
-      await mongoose.connect(`${process.env.MONGO_STRING}`);
+      if (!DATABASE_URL) throw new Error("the db url was not found");
+      await mongoose.connect(`${DATABASE_URL}`);
       console.log("MongoDB connected successfully");
       return;
     } catch (error) {
@@ -27,5 +29,3 @@ const connectDB = async () => {
     }
   }
 };
-
-export default connectDB;

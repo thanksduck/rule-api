@@ -13,19 +13,13 @@ COPY tsconfig.json tsconfig.json
 ENV NODE_ENV=production
 
 # Compile, minify, and target Bun
-RUN MONGO_STRING=${MONGO_STRING} \
-  TOKEN=${TOKEN} \
-  PORT=${PORT} \
-  ALLOWED_DOMAINS=${ALLOWED_DOMAINS} \
-  bun build \
+RUN bun build \
   ./src/index.ts \
   --compile \
   --minify \
   --target bun \
   --tsconfig-override tsconfig.json \
   --outfile server \
-  --env inline
-
 # Use distroless image for smaller, secure runtime
 FROM gcr.io/distroless/base
 WORKDIR /app

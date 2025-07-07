@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import * as mongoose from "mongoose";
 
 const ruleSchema = new mongoose.Schema(
   {
@@ -10,7 +10,7 @@ const ruleSchema = new mongoose.Schema(
     active: { type: Boolean, default: true },
     count: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 ruleSchema.index({ domain: 1, alias: 1 }, { unique: true });

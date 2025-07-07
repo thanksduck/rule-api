@@ -2,7 +2,8 @@
 node_modules/
 # build output
 dist/
-
+# always make a new lock
+#bun.lock
 # env vars
 *.env
 
