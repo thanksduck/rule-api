@@ -10,7 +10,6 @@ RUN bun install
 COPY ./src ./src
 COPY tsconfig.json tsconfig.json
 
-ENV NODE_ENV=production
 
 # Compile, minify, and target Bun
 RUN bun build \
