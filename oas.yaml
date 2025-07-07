@@ -1,0 +1,680 @@
+openapi: 3.0.3
+tags:
+  - name: Rules
+    description: 1as Rule related Endpoints
+  - name: Rule
+    description: Just an alias to rules
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas: {}
+info:
+  title: Elysia Documentation
+  description: Development documentation
+  version: 0.0.0
+paths:
+  /v1/rules/:
+    get:
+      parameters:
+        - examples:
+            - "1"
+            - "3"
+          schema:
+            minimum: 1
+            default: 1
+            title: Page Number
+            error: Page and Size should always be positive
+            anyOf:
+              - format: integer
+                default: 0
+                type: string
+              - minimum: 1
+                default: 1
+                title: Page Number
+                error: Page and Size should always be positive
+                examples:
+                  - "1"
+                  - "3"
+                type: integer
+          in: query
+          name: page
+          required: false
+        - schema:
+            type: number
+            maximum: 50
+            default: 30
+            title: Limit Field
+            error: Max limit is set to 50
+          in: query
+          name: limit
+          required: false
+        - schema:
+            anyOf:
+              - const: alias
+                type: string
+              - const: destination
+                type: string
+              - const: username
+                type: string
+              - const: domain
+                type: string
+              - const: comment
+                type: string
+              - const: active
+                type: string
+              - const: count
+                type: string
+              - const: createdAt
+                type: string
+              - const: updatedAt
+                type: string
+          in: query
+          name: sortBy
+          required: false
+        - schema:
+            anyOf:
+              - title: Ascending order
+                description: Smaller first
+                const: asc
+                type: string
+              - title: Descending order
+                description: Larger first
+                const: desc
+                type: string
+          in: query
+          name: sortOrder
+          required: false
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: query
+          name: domain
+          required: false
+        - description: the mail will be forwarded only when rule is
+          schema:
+            type: boolean
+            title: Active
+          in: query
+          name: active
+          required: false
+      operationId: getV1Rules
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      responses:
+        "200": {}
+    post:
+      parameters: []
+      operationId: postV1Rules
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - domain
+                - username
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - domain
+                - username
+          text/plain:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - domain
+                - username
+      responses:
+        "200": {}
+  /v1/rules/{domain}/{alias}:
+    get:
+      parameters:
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: path
+          name: domain
+          required: true
+        - description: The actual unique email
+          examples:
+            - hello@1as.in
+          schema:
+            type: string
+            title: Alias Email
+            error: Alias must be a valid email
+          in: path
+          name: alias
+          required: true
+      operationId: getV1RulesByDomainByAlias
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      responses:
+        "200": {}
+    patch:
+      parameters:
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: path
+          name: domain
+          required: true
+        - description: The actual unique email
+          examples:
+            - hello@1as.in
+          schema:
+            type: string
+            title: Alias Email
+            error: Alias must be a valid email
+          in: path
+          name: alias
+          required: true
+      operationId: patchV1RulesByDomainByAlias
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+          text/plain:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                domain:
+                  title: Domain
+                  description: The Domain on which the alias to be made
+                  error: Invalid domain
+                  examples:
+                    - 1as.in
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+      responses:
+        "200": {}
+    delete:
+      parameters:
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: path
+          name: domain
+          required: true
+        - description: The actual unique email
+          examples:
+            - hello@1as.in
+          schema:
+            type: string
+            title: Alias Email
+            error: Alias must be a valid email
+          in: path
+          name: alias
+          required: true
+      operationId: deleteV1RulesByDomainByAlias
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      responses:
+        "200": {}
+  /v1/rules/{domain}:
+    post:
+      parameters:
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: path
+          name: domain
+          required: true
+      operationId: postV1RulesByDomain
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - username
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - username
+          text/plain:
+            schema:
+              type: object
+              properties:
+                alias:
+                  title: Alias Email
+                  description: The actual unique email
+                  error: Alias must be a valid email
+                  examples:
+                    - hello@1as.in
+                  type: string
+                destination:
+                  format: email
+                  title: Destination Email
+                  description: The destination is associated with user
+                  error: Destination must be a valid email
+                  examples:
+                    - c@gmail.com
+                  type: string
+                username:
+                  title: User Name
+                  description: the main username of the person it has to be unique
+                  minLength: 4
+                  pattern: ^[a-z][a-z0-9_-.]{3,15}$
+                  examples:
+                    - sivm99
+                  error: Starts with Alphbet, can have Alphanumerics,dots,underscores and hyphens
+                  type: string
+                comment:
+                  title: Comment
+                  examples:
+                    - A simple comment
+                  maxLength: 200
+                  type: string
+              required:
+                - alias
+                - destination
+                - username
+      responses:
+        "200": {}
+  /v1/rules/{domain}/{alias}/{action}:
+    patch:
+      parameters:
+        - description: The Domain on which the alias to be made
+          examples:
+            - 1as.in
+          schema:
+            type: string
+            title: Domain
+            error: Invalid domain
+          in: path
+          name: domain
+          required: true
+        - description: The actual unique email
+          examples:
+            - hello@1as.in
+          schema:
+            type: string
+            title: Alias Email
+            error: Alias must be a valid email
+          in: path
+          name: alias
+          required: true
+        - examples:
+            - switch
+            - enable
+            - disable
+            - flip
+            - toggle
+          schema:
+            anyOf:
+              - title: Enable Rule
+                description: Enables the email forwarding to main destination
+                const: enable
+                type: string
+              - title: Disable Rule
+                description: Diasables the email forwarding to main destination
+                const: disable
+                type: string
+              - title: Toggle Rule
+                description: Toggles the email forwarding if on turns it off and vice versa
+                const: toggle
+                type: string
+              - title: Switch Rule
+                description: same as toggle rule
+                const: switch
+                type: string
+              - title: Flip Rule
+                description: Same as toggle rule and switch rule
+                const: flip
+                type: string
+          in: path
+          name: action
+          required: true
+      operationId: patchV1RulesByDomainByAliasByAction
+      security:
+        - bearerAuth: []
+      tags:
+        - Rules
+      responses:
+        "200": {}
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        "200": {}
