@@ -60,10 +60,10 @@ export const ruleHandler = new Elysia({
     { query: RuleListSchema },
   )
   .get(
-    "/:domain/:rule",
+    "/:domain/:alias",
     async ({ params, status }) => {
       const domain = params.domain.toLowerCase();
-      const alias = params.domain.toLowerCase().split("@")[0]!;
+      const alias = params.domain.toLowerCase().split("@")[0] || "";
       try {
         const cachedRule = ruleCache.getRule(domain, alias);
         if (cachedRule) {
