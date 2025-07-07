@@ -1,7 +1,7 @@
 import Elysia, { t } from "elysia";
 import { Rule } from "@/db/schema";
 import { updateRuleCount } from "@/utils";
-import { toggleActionField } from "@/validation";
+import { toggleActionField } from "@/validation/_common";
 import { PAGINATION } from "@/validation/_list";
 import {
   allowedDomains,
